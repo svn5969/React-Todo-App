@@ -5,26 +5,43 @@ import 'react-toastify/dist/ReactToastify.css';
 import "../App.css"
 
 // to get data from Local Storage 
-const getLocalItems =()=>{
+const getLocalItems = () => {
     let list = localStorage.getItem('lists')
     console.log(list);
     if (list) {
         return JSON.parse(localStorage.getItem('lists'))
-    }else{
+    } else {
         return [];
     }
 }
 const Todo = () => {
     const [inputData, setInputData] = useState('')
     const [items, setItems] = useState(getLocalItems())
-   
+    const [toggleEdit,setToggleEdit]= useState(true)
+    const [editSingleItem,setEditSingleItem] = useState(null)
+
     const addItem = () => {
         if (!inputData) {
             toast.error('Please Add the Item', {
                 position: "top-center"
             })
-        }else {
-            setItems([...items, inputData])
+        }else if (inputData && !toggleEdit){
+            setItems(
+                items.map((elem)=>{
+                  if (elem.id=== editSingleItem) {
+                      return {...elem,name:inputData}
+                  }
+                  return elem
+                })
+               
+            )
+            setToggleEdit(true)
+            setInputData('')
+            setEditSingleItem(null)
+        }
+         else {
+            const allInputData = { id: new Date().getTime().toString(), name: inputData }
+            setItems([...items, allInputData])
             setInputData('')
         }
 
@@ -32,33 +49,52 @@ const Todo = () => {
     // enter key press
     const handleKeypress = e => {
         //it triggers by pressing the enter key
-      if (e.key === "Enter") {
-        //   console.log("enter press working");
-       addItem()
-      }
-    }; 
+        if (e.key === "Enter") {
+            //   console.log("enter press working");
+            addItem()
+        }
+    };
     // delete items
-    const deleteItem=(id) => {
-     console.log(id);
-     const updatedItems = items.filter((elem,ind)=>{
-         return ind !== id
-     })
-     setItems(updatedItems)
+    const deleteItem = (index) => {
+        console.log(index);
+        const updatedItems = items.filter((elem) => {
+            return elem.id !== index
+        })
+        setItems(updatedItems)
     }
+
+    // edit Item  
+    // When user Click on edit button 
+    //1: get the id and name of the data which user clicked to edit
+    // 2: set the toggle mode to change the submit button into edit button
+    //3: Now update the value of the setInput with the new updated value to edit 
+    //4: To pass the current element Id to new state variable for reference
+
+    const editItem = (id) => {
+           let newEditItem = items.find((elem)=>{
+             return elem.id === id
+           })
+           console.log(newEditItem);
+           setToggleEdit(false)
+           setInputData(newEditItem.name)
+           setEditSingleItem(id)
+    }
+
+
     // remove all items 
 
-    const removeAll=() => {
+    const removeAll = () => {
         if (items) {
             alert('Are You Sure ?')
             setItems([])
         }
-        
+
     }
 
     // add data to local storage
-    useEffect(()=>{
-     localStorage.setItem('lists',JSON.stringify(items))
-    },[items])
+    useEffect(() => {
+        localStorage.setItem('lists', JSON.stringify(items))
+    }, [items])
     return (
         <div className="main-div">
             <div className="child-div">
@@ -71,18 +107,24 @@ const Todo = () => {
                         value={inputData} onChange={(e) => setInputData(e.target.value)}
                         onKeyPress={handleKeypress}
                     />
-                    <i className="fa fa-plus add-btn" title="Add Item" onClick={addItem}></i>
+                    {
+                        toggleEdit ? <i className="fa fa-plus add-btn" title="Add Item" onClick={addItem}></i> : <i className="far fa-edit add-btn" title="Update Item" onClick={addItem}></i>
+                    }
+                    
                     <ToastContainer />
                 </div>
 
                 <div className="showItems">
 
                     {
-                        items.map((elem, ind) => {
+                        items.map((elem) => {
                             return (
-                                <div className="eachItem" key={ind}>
-                                    <h3>{elem}</h3>
-                                    <i className="fa fa-trash add-btn" title="Delete Item" onClick={()=>deleteItem(ind)}></i>
+                                <div className="eachItem" key={elem.id}>
+                                    <h3>{elem.name}</h3>
+                                    <div className="todo-btn">
+                                        <i className="far fa-edit add-btn" title="Edit Item" onClick={() => editItem(elem.id)}></i>
+                                        <i className="far fa-trash-alt add-btn" title="Delete Item" onClick={() => deleteItem(elem.id)}></i>
+                                    </div>
                                 </div>
                             )
                         })
