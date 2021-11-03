@@ -1,22 +1,15 @@
+// without get data from local storage...
+
 import React, { useEffect, useState } from 'react';
 import todo from "../component/images/todo.png";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "../App.css"
 
-// to get data from Local Storage 
-const getLocalItems =()=>{
-    let list = localStorage.getItem('lists')
-    console.log(list);
-    if (list) {
-        return JSON.parse(localStorage.getItem('lists'))
-    }else{
-        return [];
-    }
-}
+
 const Todo = () => {
     const [inputData, setInputData] = useState('')
-    const [items, setItems] = useState(getLocalItems())
+    const [items, setItems] = useState([])
    
     const addItem = () => {
         if (!inputData) {
